@@ -2,7 +2,7 @@ from sqlmodel import select
 from .models import Task
 from fastapi import FastAPI, Depends, Path, HTTPException
 from sqlmodel import Session
-from typing import Annotated
+from typing import Annotated, Any, Sequence
 from .db_engine import get_session, create_db_and_tables
 
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -27,7 +27,7 @@ async def task_detail(task_id: Annotated[int, Path(gt=0)], session: SessionDep):
         return task
 
 @app.post("/tasks")
-async def create_task(task: Task, session: SessionDep) -> Task:
+async def create_task(task: Task, session: SessionDep):
     session.add(task)
     session.commit()
     session.refresh(task)
@@ -46,3 +46,13 @@ async def update_task(task_id: Annotated[int, Path(gt=0)], task: Task, session: 
         session.commit()
         session.refresh(task_db)
         return task
+
+@app.delete("/tasks/{task_id}")
+async def delete_task(task_id: Annotated[int, Path(gt=0)], session: SessionDep):
+    task = session.get(Task, task_id)
+
+    if task:
+        session.delete(task)
+        return {"message": f"Task #{task.id} has been deleted successfully"}
+    else:
+        return HTTPException(status_code=404, detail="Task not found")
