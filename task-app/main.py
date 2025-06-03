@@ -1,8 +1,8 @@
 from sqlmodel import select
-from .models import Task
+from .models import Task, User
 from fastapi import FastAPI, Depends, Path, HTTPException
 from sqlmodel import Session
-from typing import Annotated, Any, Sequence
+from typing import Annotated
 from .db_engine import get_session, create_db_and_tables
 
 SessionDep = Annotated[Session, Depends(get_session)]
