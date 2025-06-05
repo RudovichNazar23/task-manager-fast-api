@@ -1,11 +1,10 @@
 from sqlite3 import IntegrityError
 from typing import Annotated
 from fastapi import APIRouter, Path, HTTPException
-from sqlalchemy import select
 
 from ..models import UserResponseModel, User
 from ..db_engine import SessionDep
-from ..dependencies import pwd_context
+from ..dependencies import pwd_context, is_hashed_password
 
 user_router = APIRouter(
     prefix="/users"
@@ -46,12 +45,16 @@ async def update_user(user_id: Annotated[int, Path(gt=0)], user: User, session: 
         raise HTTPException(status_code=404, detail="User not found")
     else:
         user_data = user.model_dump(exclude_unset=True)
+        user_password = user_data.get("password")
+        if not is_hashed_password(user_password):
+            hashed_password = pwd_context.hash(user_password)
+            user_data.update({"password": hashed_password})
         try:
             user_db.sqlmodel_update(user_data)
             session.add(user_db)
             session.commit()
             session.refresh(user_db)
-            return user
+            return user_db
         except IntegrityError as error:
             raise HTTPException(status_code=400, detail="This username is already taken")
 
