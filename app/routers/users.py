@@ -6,9 +6,7 @@ from ..models import UserResponseModel, User
 from ..db_engine import SessionDep
 from ..dependencies import pwd_context, is_hashed_password
 
-user_router = APIRouter(
-    prefix="/users"
-)
+user_router = APIRouter(prefix="/users")
 
 @user_router.get("/", response_model=list[UserResponseModel])
 async def user_list(session: SessionDep):
