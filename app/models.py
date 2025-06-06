@@ -10,6 +10,10 @@ class UserResponseModel(BaseModel):
     id: int
     username: str
 
+class AuthUserModel(BaseModel):
+    username: str
+    password: str
+
 class Task(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, index=True)
     title: str = Field(index=True)
