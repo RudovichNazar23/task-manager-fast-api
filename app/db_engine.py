@@ -1,10 +1,14 @@
+import os
+
 from typing import Annotated
 
 from sqlmodel import create_engine, SQLModel, Session
 from fastapi import Depends
+from dotenv import load_dotenv
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+load_dotenv()
+
+sqlite_url = os.getenv("SQLITE_URL")
 
 connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, connect_args=connect_args)
