@@ -28,9 +28,9 @@ def verify_password(password: str, hashed: str) -> bool:
     return pwd_context.verify(password, hashed)
 
 
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() +  timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+def create_access_token(user_data: User):
+    to_encode = {"sub": str(user_data.dict().get("id"))}
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -40,16 +40,15 @@ def authenticate_user(username: str, password: str, session: SessionDep):
         return None
     return user
 
-async def get_current_user(session: SessionDep, token: str = Depends(oauth2_scheme)):
+async def get_request_user(session: SessionDep, token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if not username:
+        user_id: int = payload.get("sub")
+        if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-
-    user = session.exec(select(User).where(User.username == username)).first()
+    user = session.exec(select(User).where(User.id == user_id)).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user

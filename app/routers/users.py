@@ -1,22 +1,27 @@
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from typing import Annotated
 from fastapi import APIRouter, Path, HTTPException
+from fastapi.params import Depends
+from ..permissions import check_user_ownership
 
 from ..models import UserResponseModel, User
 from ..db_engine import SessionDep
-from ..dependencies import pwd_context, is_hashed_password
+from ..dependencies import pwd_context, is_hashed_password, get_request_user
 
 user_router = APIRouter(prefix="/users")
 
 @user_router.get("/", response_model=list[UserResponseModel])
-async def user_list(session: SessionDep):
+async def user_list(session: SessionDep, request_user: User = Depends(get_request_user)):
     users = session.query(User).all()
     return users
 
 @user_router.get("/{user_id}", response_model=UserResponseModel)
-async def user_detail(user_id: Annotated[int, Path(gt=0)], session: SessionDep):
+async def user_detail(
+        user_id: Annotated[int, Path(gt=0)],
+        session: SessionDep,
+        request_user: User = Depends(get_request_user)
+):
     user = session.get(User, user_id)
-
     if user:
         return user
     else:
@@ -25,18 +30,24 @@ async def user_detail(user_id: Annotated[int, Path(gt=0)], session: SessionDep):
 @user_router.post("/", response_model=UserResponseModel)
 async def create_user(user: User, session: SessionDep):
     hashed_password = pwd_context.hash(user.password)
-    new_user = User(username=user.username, password=hashed_password)
-
     try:
+        new_user = User(username=user.username, password=hashed_password)
         session.add(new_user)
         session.commit()
         session.refresh(new_user)
         return new_user
     except IntegrityError as error:
+        session.rollback()
         raise HTTPException(status_code=400, detail="This username is already taken")
 
 @user_router.put("/{user_id}", response_model=UserResponseModel)
-async def update_user(user_id: Annotated[int, Path(gt=0)], user: User, session: SessionDep):
+async def update_user(
+        user_id: Annotated[int, Path(gt=0)],
+        user: User,
+        session: SessionDep,
+        request_user: User = Depends(get_request_user)
+):
+    check_user_ownership(user_id, request_user)
     user_db = session.get(User, user_id)
 
     if not user:
@@ -44,7 +55,7 @@ async def update_user(user_id: Annotated[int, Path(gt=0)], user: User, session: 
     else:
         user_data = user.model_dump(exclude_unset=True)
         user_password = user_data.get("password")
-        if not is_hashed_password(user_password):
+        if user.dict().get("password") and not is_hashed_password(user_password):
             hashed_password = pwd_context.hash(user_password)
             user_data.update({"password": hashed_password})
         try:
@@ -57,7 +68,12 @@ async def update_user(user_id: Annotated[int, Path(gt=0)], user: User, session: 
             raise HTTPException(status_code=400, detail="This username is already taken")
 
 @user_router.delete("/{user_id}")
-async def delete_user(user_id: Annotated[int, Path(gt=0)], session: SessionDep):
+async def delete_user(
+        user_id: Annotated[int, Path(gt=0)],
+        session: SessionDep,
+        request_user: User = Depends(get_request_user)
+):
+    check_user_ownership(user_id, request_user)
     user = session.get(User, user_id)
 
     if user:
