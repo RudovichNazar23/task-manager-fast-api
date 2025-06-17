@@ -52,3 +52,4 @@ async def get_request_user(session: SessionDep, token: str = Depends(oauth2_sche
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user
+
