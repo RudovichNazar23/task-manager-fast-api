@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 
-from .routers import users, tasks, auth
-from .db_engine import create_db_and_tables
+from app.routers import users, tasks, auth
+from app.db_engine import create_db_and_tables
 
 app = FastAPI()
 app.include_router(users.user_router)
