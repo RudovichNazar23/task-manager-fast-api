@@ -2,11 +2,11 @@ from sqlalchemy.exc import IntegrityError
 from typing import Annotated
 from fastapi import APIRouter, Path, HTTPException
 from fastapi.params import Depends
-from ..permissions import check_user_ownership
+from app.permissions import check_user_ownership
 
-from ..models import UserResponseModel, User
-from ..db_engine import SessionDep
-from ..dependencies import pwd_context, is_hashed_password, get_request_user
+from app.models import UserResponseModel, User
+from app.db_engine import SessionDep
+from app.dependencies import pwd_context, is_hashed_password, get_request_user
 
 user_router = APIRouter(prefix="/users")
 
