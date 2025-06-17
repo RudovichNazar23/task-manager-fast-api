@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import Path, HTTPException
-from .models import User, Task
+from models import User, Task
 
 def check_user_ownership(
         user_id: Annotated[int, Path(gt=0)],

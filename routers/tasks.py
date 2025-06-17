@@ -2,10 +2,10 @@ from typing import Annotated
 from fastapi import APIRouter, Path, HTTPException, Depends
 from sqlmodel import select
 
-from ..models import Task, User
-from ..db_engine import SessionDep
-from ..dependencies import get_request_user
-from ..permissions import check_task_ownership
+from models import Task, User
+from db_engine import SessionDep
+from dependencies import get_request_user
+from permissions import check_task_ownership
 
 task_router = APIRouter(
     prefix="/tasks"

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from ..db_engine import SessionDep
-from ..dependencies import authenticate_user, create_access_token
-from ..models import AuthUserModel, User
+from db_engine import SessionDep
+from dependencies import authenticate_user, create_access_token
+from models import AuthUserModel, User
 
 auth_router = APIRouter(prefix="/auth")
 

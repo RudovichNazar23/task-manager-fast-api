@@ -9,8 +9,8 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import select
 from dotenv import load_dotenv
 
-from .db_engine import SessionDep
-from .models import User
+from db_engine import SessionDep
+from models import User
 
 load_dotenv()
 
