@@ -49,8 +49,6 @@ async def update_task(
         session: SessionDep,
         request_user: User = Depends(get_request_user)
 ):
-    # Check if user can change user_id in Task instance
-
     task_db = session.get(Task, task_id)
     check_task_ownership(task_db, request_user)
 
@@ -58,7 +56,7 @@ async def update_task(
         raise HTTPException(status_code=404, detail="Task not found")
 
     task_data = task.model_dump(exclude_unset=True)
-
+    print([task_data[elem] for elem in task_data])
     if not task_data.get("user_id") == request_user.id:
         raise HTTPException(status_code=403, detail="Task owner cannot be changed")
 
