@@ -1,5 +1,5 @@
 from sqlmodel import Field, SQLModel
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictStr
 
 class User(SQLModel, table=True):
     id: int = Field(primary_key=True, index=True)
@@ -20,3 +20,4 @@ class Task(SQLModel, table=True):
     title: str = Field(index=True)
     description: str = Field(default=None, index=True)
     is_completed: bool
+    test_field: StrictStr = Field(default="test field", nullable=True)
